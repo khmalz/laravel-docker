@@ -1,48 +1,57 @@
-# Include any files or directories that you don't want to be copied to your
-# container here (e.g., local build artifacts, temporary files, etc.).
-#
-# For more help, visit the .dockerignore file reference guide at
-# https://docs.docker.com/go/build-context-dockerignore/
+# Ignore everything by default
+*
 
-**/.classpath
-**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
-**/.gitattributes
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/.next
-**/.cache
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/charts
-**/docker-compose*
-**/compose.y*ml
-**/compose.*.y*ml
-!**/composer.json
-!**/composer.lock
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-**/vendor
-**/.DS_Store
-.editorconfig
-.env
-.env.example
-LICENSE
-README.md
+# Allow necessary files and directories
+!/.env.example
+!/artisan
+!/composer.json
+!/composer.lock
+!/package.json
+!/vite.config.js
+!/webpack.mix.js
+!/phpunit.xml
+!/server.php
 
-# Ignore development-related files and directories
-# For development environment, we will use mount bind to mount the source code to the container
-# So we don't need to copy the source code to the container for development
-tests/
-phpunit.xml
-phpunit.xml.dist
+# Allow specific directories
+!/app/
+!/bootstrap/
+!/config/
+!/database/
+!/docker/
+!/public/
+!/resources/
+!/routes/
+!/tests/
+!/lang/
+
+# Development-only files (exclude)
+/.git
+/.github
+/.idea
+/.vscode
+/.editorconfig
+/.gitattributes
+/.gitignore
+/.styleci.yml
+
+# Dependency directories (should be installed inside container)
+/node_modules/
+/vendor/
+/storage/*.key
+
+# Build assets (should be built inside container)
+/public/css/
+/public/js/
+/public/build/
+
+# Environment files (except example)
+/.env
+!/.env.example
+
+# Log files
+*.log
+*.sqlite
+
+# Cache files
+.phpunit.result.cache
+*.cache
