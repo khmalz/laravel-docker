@@ -28,43 +28,16 @@ project-root/
 -   **Web Server**: Nginx (Alpine)
 -   **Orchestration**: Docker Compose
 
-### 📄 Environment File Separation
+### ⚙️ Environment Flexibility
 
-By default, Laravel uses a `.env` file to load configuration, while Docker Compose also uses `.env` (in the root directory) to interpolate values in `docker-compose.yml`.
+By default, the application looks for a `.env.docker` file **inside the container**.
 
-To avoid conflict and ensure container-specific configuration, this project uses a separate file:
+To support multiple workflows:
 
-```bash
-.env.docker
-```
+-   If `.env.docker` exists → it will be used and copied as `.env`
+-   If not → `.env` or `.env.example` will be used instead
 
-> This file is mounted as `/var/www/.env` inside the container and contains environment variables **specifically for the application runtime inside Docker**.
-
-#### 🔁 Usage Flow:
-
-1. **Copy the base `.env` from example:**
-
-    ```bash
-    cp .env.example .env
-    ```
-
-2. **Duplicate it for Docker-specific usage:**
-
-    ```bash
-    cp .env .env.docker
-    ```
-
-Then, inside `docker-compose.yml`, you’ll find:
-
-```yaml
-volumes:
-    - ./.env.docker:/var/www/.env
-```
-
-This ensures that:
-
--   Your host Laravel setup (if any) still uses `.env`
--   Your container environment is isolated via `.env.docker`
+This logic is handled inside `entrypoint.sh` automatically, so developers can work with whichever they prefer.
 
 ## Getting Started
 
@@ -83,7 +56,6 @@ docker compose version
 
 ```bash
 cp .env.example .env
-cp .env .env.docker
 ```
 
 2. Start the Docker Compose Services:

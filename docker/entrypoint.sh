@@ -2,6 +2,17 @@
 
 set -e
 
+# Copy env file if it doesn't exist
+if [ -f "/var/www/.env.docker" ]; then
+  echo "Using .env.docker"
+  cp /var/www/.env.docker /var/www/.env
+elif [ ! -f /var/www/.env ]; then
+  echo "No .env found. Copying from .env.example"
+  cp /var/www/.env.example /var/www/.env
+else
+  echo "Using existing .env"
+fi
+
 git config --global --add safe.directory /var/www
 
 # Install dependencies

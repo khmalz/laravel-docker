@@ -5,7 +5,6 @@ services:
             dockerfile: docker/php/Dockerfile
         volumes:
             - ./:/var/www
-            - ./.env.docker:/var/www/.env
         environment:
             DB_HOST: postgres
             DB_PORT: 5432
