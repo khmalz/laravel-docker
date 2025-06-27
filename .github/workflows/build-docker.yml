@@ -43,7 +43,7 @@ jobs:
           start_time=$(date +%s)
           timeout=600
           while true; do
-            if docker compose logs php 2>&1 | grep -q "Start PHP-FPM"; then
+            if docker compose logs php 2>&1 | grep -q "ready to handle connections"; then
               echo "Laravel setup completed successfully!"
               break
             fi
@@ -52,16 +52,13 @@ jobs:
             elapsed=$((current_time - start_time))
 
             if [ "$elapsed" -gt "$timeout" ]; then
-              echo "❌ Timeout waiting for Laravel setup after ${elapsed}s"
+              echo "❌ Timeout waiting for PHP-FPM"
               docker compose logs php
               exit 1
             fi
-            
-            echo "🔍 Latest PHP logs:"
-            docker compose logs php | tail -n 20
 
             echo "Still waiting... (${elapsed}s elapsed)"
-            sleep 30
+            sleep 10
           done
 
       # - name: Run tests
