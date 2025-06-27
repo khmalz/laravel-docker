@@ -1,0 +1,52 @@
+name: Laravel Docker CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  COMPOSE_PROJECT_NAME: laravel-app
+  DB_HOST: postgres
+  DB_PORT: 5432
+  REDIS_HOST: redis
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 📄 Generate .env
+        run: |
+          cp .env.example .env
+          echo "DB_HOST=postgres" >> .env
+          echo "DB_DATABASE=laravel-docker" >> .env
+          echo "DB_USERNAME=laravel" >> .env
+          echo "DB_PASSWORD=secret" >> .env
+          echo "REDIS_HOST=redis" >> .env
+
+      - name: Build and start containers
+        run: |
+          docker compose up -d --build
+          docker compose ps
+
+      - name: Wait for services to initialize
+        run: |
+          # Tunggu hingga entrypoint.sh selesai menjalankan setup
+          docker compose logs -f php | grep -q "Start PHP-FPM"
+          sleep 5
+
+      # - name: Run tests
+      #   run: docker compose exec -T php php artisan test
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down
