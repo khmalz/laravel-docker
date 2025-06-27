@@ -1,61 +1,170 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Docker Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project provides a fully Dockerized development environment for a Laravel 12 application using PHP 8.4 FPM, PostgreSQL, Redis, and Nginx.
 
-## About Laravel
+## Project Structure
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```
+project-root/
+├── app/                      # Laravel application code
+├── ...
+├── docker/
+│   ├── nginx/                # Nginx configuration files
+│   │   └── nginx.conf
+│   ├── php/                  # PHP Dockerfile and setup
+│   │   └── Dockerfile
+│   └── entrypoint.sh         # Entrypoint script for Laravel setup
+├── docker-compose.yml        # Docker Compose service definitions
+├── .env.example              # Environment variable template
+└── README.md
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Environment Details
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **Laravel**: 12.x
+-   **PHP**: 8.4 (FPM)
+-   **Database**: PostgreSQL 16
+-   **Cache**: Redis 7 (Alpine)
+-   **Web Server**: Nginx (Alpine)
+-   **Orchestration**: Docker Compose
 
-## Learning Laravel
+### 📄 Environment File Separation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+By default, Laravel uses a `.env` file to load configuration, while Docker Compose also uses `.env` (in the root directory) to interpolate values in `docker-compose.yml`.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+To avoid conflict and ensure container-specific configuration, this project uses a separate file:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+.env.docker
+```
 
-## Laravel Sponsors
+> This file is mounted as `/var/www/.env` inside the container and contains environment variables **specifically for the application runtime inside Docker**.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### 🔁 Usage Flow:
 
-### Premium Partners
+1. **Copy the base `.env` from example:**
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    ```bash
+    cp .env.example .env
+    ```
 
-## Contributing
+2. **Duplicate it for Docker-specific usage:**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    ```bash
+    cp .env .env.docker
+    ```
 
-## Code of Conduct
+Then, inside `docker-compose.yml`, you’ll find:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```yaml
+volumes:
+    - ./.env.docker:/var/www/.env
+```
 
-## Security Vulnerabilities
+This ensures that:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+-   Your host Laravel setup (if any) still uses `.env`
+-   Your container environment is isolated via `.env.docker`
 
-## License
+## Getting Started
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Prerequisites
+
+Ensure Docker and Docker Compose are installed:
+
+```bash
+docker --version
+docker compose version
+```
+
+### Setting Up the Environment
+
+1. Copy the .env.example file to .env and adjust any necessary environment variables:
+
+```bash
+cp .env.example .env
+cp .env .env.docker
+```
+
+2. Start the Docker Compose Services:
+
+```bash
+docker-compose up -d --build
+```
+
+3. Access the Application:
+
+Visit: [http://localhost:8000](http://localhost:8000)
+
+### Accessing inside the Container
+
+### Rebuild Containers:
+
+```bash
+docker-compose up -d --build
+```
+
+### Stop Containers:
+
+```bash
+docker-compose down
+```
+
+### View Logs:
+
+```bash
+docker-compose logs -f
+```
+
+For specific services, you can use:
+
+```bash
+docker-compose logs -f php
+```
+
+## Laravel Setup (Inside the Container)
+
+After container startup, the `entrypoint.sh` automatically:
+
+-   Installs dependencies via Composer
+-   Generates application key
+-   Waits for PostgreSQL to be ready
+-   Runs database migrations and seeds
+-   Caches Laravel config, routes, and views
+-   Fixes storage & cache directory permissions
+
+You can manually access the PHP container with:
+
+```bash
+docker-compose exec php bash
+```
+
+Or run artisan commands directly:
+
+```bash
+docker-compose exec php php artisan migrate
+```
+
+## Technical Notes
+
+-   **Environment Isolation**: The application runs entirely inside containers, ensuring your host machine stays clean.
+-   **File Permissions**: UID/GID synchronization is configurable via `.env.example` to avoid permission issues between Windows/WSL and Linux containers.
+-   **Database**: A PostgreSQL role and database are automatically created based on the `POSTGRES_USER` and `POSTGRES_DB` environment variables.
+-   **Redis Integration**: Laravel is configured to use Redis for cache and sessions. You can choose between `phpredis` or `predis` by updating your `.env` file.
+
+## 💡 Troubleshooting
+
+### `FATAL: role "postgres" does not exist`
+
+Make sure you are using the correct `POSTGRES_USER` and healthcheck in your `docker-compose.yml`. The default is:
+
+```yaml
+POSTGRES_USER=laravel
+POSTGRES_DB=laravel-docker
+```
+
+And the healthcheck should be:
+
+```yaml
+test: ["CMD-SHELL", "pg_isready -U laravel -d laravel-docker"]
+```
