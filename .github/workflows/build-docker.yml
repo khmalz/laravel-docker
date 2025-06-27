@@ -15,7 +15,6 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -38,11 +37,20 @@ jobs:
           docker compose up -d --build
           docker compose ps
 
-      - name: Wait for services to initialize
+      - name: Wait for Laravel setup completion
         run: |
-          # Tunggu hingga entrypoint.sh selesai menjalankan setup
-          docker compose logs -f php | grep -q "Start PHP-FPM"
-          sleep 5
+          start_time=$(date +%s)
+          while true; do
+            if docker compose logs php 2>&1 | grep -q "Start PHP-FPM"; then
+              echo "Laravel setup completed successfully!"
+              break
+            fi
+
+            current_time=$(date +%s)
+            elapsed=$((current_time - start_time))
+            echo "Still waiting... (${elapsed}s elapsed)"
+            sleep 10
+          done
 
       # - name: Run tests
       #   run: docker compose exec -T php php artisan test
