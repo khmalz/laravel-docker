@@ -23,7 +23,7 @@ else
 fi
 
 # Git safe directory (untuk container laravel user)
-git config --global --add safe.directory /var/www
+git config --global --add safe.directory /var/www/html
 
 # Install dependencies
 composer install \

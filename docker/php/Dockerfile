@@ -34,7 +34,7 @@ RUN docker-php-ext-enable zip
 RUN pecl install -o -f redis \
     && docker-php-ext-enable redis
 
-# Hapus build dependencies untuk mengurangi ukuran image
+# Delete build dependencies to reduce image size
 RUN apt-get purge -y autoconf build-essential && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
@@ -42,15 +42,15 @@ RUN apt-get purge -y autoconf build-essential && \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Buat user dan group untuk Laravel
+# Create user and group laravel
 ARG UID=1000
 ARG GID=1000
 RUN groupadd -g ${GID} laravel && \
     useradd -u ${UID} -g laravel -s /bin/bash -m laravel && \
-    mkdir -p /var/www/html/storage/logs && \
+    mkdir -p /var/www/html && \
     chown -R laravel:laravel /var/www/html && \
-    mkdir -p /data /config \
-    && chown -R laravel:laravel /data /config
+    mkdir -p /data /config && \
+    chown -R laravel:laravel /data /config
 
 # Set working directory
 WORKDIR /var/www/html
@@ -60,6 +60,10 @@ COPY docker/etc/supervisor.d/supervisord.conf /etc/supervisor/conf.d/supervisord
 # Copy entrypoint script dan beri permission
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set permissions
+RUN mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R laravel:laravel storage bootstrap/cache
 
 # Switch ke user laravel
 USER laravel
