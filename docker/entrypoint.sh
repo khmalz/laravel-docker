@@ -53,5 +53,8 @@ php artisan route:cache
 php artisan view:cache
 php artisan cache:clear
 
+echo "current user: ".get_current_user();
+echo "script was executed under user: ".exec('whoami');
+
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
