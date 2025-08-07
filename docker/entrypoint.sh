@@ -50,7 +50,7 @@ php artisan db:seed --force
 # Cache config, route, view
 php artisan config:cache
 php artisan route:cache
-php artisan view:cach
+php artisan view:cache
 php artisan cache:clear
 
 echo "Starting supervisord..."

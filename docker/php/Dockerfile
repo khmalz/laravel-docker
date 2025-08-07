@@ -55,16 +55,17 @@ RUN groupadd -g ${GID} laravel && \
 # Set working directory
 WORKDIR /var/www/html
 
+# Set permissions
+RUN mkdir -p public \
+    && mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R laravel:laravel storage bootstrap/cache public
+
 COPY docker/etc/supervisor.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy entrypoint script dan beri permission
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Set permissions
-RUN mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
-    && chown -R laravel:laravel storage bootstrap/cache
-
+    
 # Switch ke user laravel
 USER laravel
 
