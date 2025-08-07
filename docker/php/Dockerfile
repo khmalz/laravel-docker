@@ -60,6 +60,10 @@ RUN mkdir -p public \
     && mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R laravel:laravel storage bootstrap/cache public
 
+RUN chown -R laravel:laravel /var/www/html/public \
+    && chown -R laravel:laravel /var/www/html/storage \
+    && chown -R laravel:laravel /var/www/html/bootstrap/cache
+
 COPY docker/etc/supervisor.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy entrypoint script dan beri permission

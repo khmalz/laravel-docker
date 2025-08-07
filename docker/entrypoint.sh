@@ -53,9 +53,5 @@ php artisan route:cache
 php artisan view:cache
 php artisan cache:clear
 
-# Debug info: current PHP user
-php -r 'echo "Current PHP user (get_current_user): " . get_current_user() . PHP_EOL;'
-php -r 'echo "PHP executed as user (whoami): " . shell_exec("whoami");'
-
 echo "Starting supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
