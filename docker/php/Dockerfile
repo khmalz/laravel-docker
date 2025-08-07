@@ -57,6 +57,8 @@ WORKDIR /var/www/html
 
 # Set permissions
 RUN mkdir -p public \
+    && chown -R laravel:laravel public \
+    && chmod -R 775 public \
     && mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R laravel:laravel storage bootstrap/cache public
 
