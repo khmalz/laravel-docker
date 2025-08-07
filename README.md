@@ -1,6 +1,6 @@
 # Laravel Docker Project
 
-This project provides a fully Dockerized development environment for a Laravel 12 application using PHP 8.4 FPM, PostgreSQL, Redis, and Nginx.
+This project provides a fully Dockerized development environment for a Laravel 12 application using **FrankenPHP** (Caddy-based server), PHP 8.4, PostgreSQL, and Redis.
 
 ## Project Structure
 
@@ -9,10 +9,11 @@ project-root/
 ├── app/                      # Laravel application code
 ├── ...
 ├── docker/
-│   ├── nginx/                # Nginx configuration files
-│   │   └── nginx.conf
-│   ├── php/                  # PHP Dockerfile and setup
+│   ├── php/                  # PHP Dockerfile and setup (FrankenPHP)
 │   │   └── Dockerfile
+│   ├── etc/
+│   │   └── supervisor.d/
+│   │       └── supervisord.conf
 │   └── entrypoint.sh         # Entrypoint script for Laravel setup
 ├── docker-compose.yml        # Docker Compose service definitions
 ├── .env.example              # Environment variable template
@@ -22,10 +23,10 @@ project-root/
 ## Environment Details
 
 -   **Laravel**: 12.x
--   **PHP**: 8.4 (FPM)
+-   **PHP**: 8.4 (via FrankenPHP)
 -   **Database**: PostgreSQL 16
 -   **Cache**: Redis 7 (Alpine)
--   **Web Server**: Nginx (Alpine)
+-   **Web Server**: [FrankenPHP](https://frankenphp.dev) (Caddy-based PHP server)
 -   **Orchestration**: Docker Compose
 
 ### ⚙️ Environment Flexibility
@@ -99,6 +100,7 @@ docker-compose logs -f php
 After container startup, the `entrypoint.sh` automatically:
 
 -   Installs dependencies via Composer
+-   Copies the `.env.docker` file (if exists)
 -   Generates application key
 -   Waits for PostgreSQL to be ready
 -   Runs database migrations and seeds
@@ -117,12 +119,18 @@ Or run artisan commands directly:
 docker-compose exec php php artisan migrate
 ```
 
+Laravel is served via:
+
+-   `php artisan octane:frankenphp --host=0.0.0.0 --port=80`
+-   Managed using `supervisord` in production-like mode
+
 ## Technical Notes
 
--   **Environment Isolation**: The application runs entirely inside containers, ensuring your host machine stays clean.
--   **File Permissions**: UID/GID synchronization is configurable via `.env.example` to avoid permission issues between Windows/WSL and Linux containers.
--   **Database**: A PostgreSQL role and database are automatically created based on the `POSTGRES_USER` and `POSTGRES_DB` environment variables.
--   **Redis Integration**: Laravel is configured to use Redis for cache and sessions. You can choose between `phpredis` or `predis` by updating your `.env` file.
+-   **Web Server**: FrankenPHP is a modern, high-performance PHP server built on Caddy with Octane and Fiber integration.
+-   **Environment Isolation**: The application runs entirely inside containers, keeping your host machine clean.
+-   **Permissions**: UID/GID can be adjusted in `.env.example` for compatibility with your OS (Linux/WSL/Windows).
+-   **PostgreSQL**: Role/database are created via Docker Compose environment.
+-   **Redis**: Laravel uses Redis (via `phpredis`) for cache, queue, and sessions.
 
 ## 💡 Troubleshooting
 
@@ -139,4 +147,18 @@ And the healthcheck should be:
 
 ```yaml
 test: ["CMD-SHELL", "pg_isready -U laravel -d laravel-docker"]
+```
+
+## 🐘 Database & Redis Access
+
+To access PostgreSQL CLI:
+
+```bash
+docker compose exec postgres psql -U laravel -d laravel-docker
+```
+
+To access Redis CLI:
+
+```bash
+docker compose exec redis redis-cli
 ```

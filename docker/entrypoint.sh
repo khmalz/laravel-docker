@@ -2,17 +2,27 @@
 
 set -e
 
-# Copy env file if it doesn't exist
-if [ -f "/var/www/.env.docker" ]; then
+cd /var/www/html
+
+# Fix permission
+chown -R $(id -u):$(id -g) storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+chmod -R gu+w storage
+chmod -R guo+w storage
+
+# Copy .env if it doesn't exist
+if [ -f "/var/www/html/.env.docker" ]; then
   echo "Using .env.docker"
-  cp /var/www/.env.docker /var/www/.env
-elif [ ! -f /var/www/.env ]; then
+  cp /var/www/html/.env.docker /var/www/html/.env
+elif [ ! -f /var/www/html/.env ]; then
   echo "No .env found. Copying from .env.example"
-  cp /var/www/.env.example /var/www/.env
+  cp /var/www/html/.env.example /var/www/html/.env
 else
   echo "Using existing .env"
 fi
 
+# Git safe directory (untuk container laravel user)
 git config --global --add safe.directory /var/www
 
 # Install dependencies
@@ -21,30 +31,27 @@ composer install \
     --prefer-dist \
     --optimize-autoloader
 
-# Generate application key
-php artisan key:generate
+# Generate APP_KEY if not set
+if ! grep -q "^APP_KEY=" .env || [ -z "$(grep '^APP_KEY=' .env | cut -d '=' -f2)" ]; then
+  php artisan key:generate
+fi
 
+# Tunggu PostgreSQL
 echo "Menunggu PostgreSQL..."
 while ! pg_isready -h postgres -p 5432 -q; do
   sleep 1
 done
 echo "PostgreSQL siap!"
 
-# Jalankan migrasi
-php artisan migrate:fresh
-php artisan db:seed
+# Migration dan seeding
+php artisan migrate:fresh --force
+php artisan db:seed --force
 
+# Cache config, route, view
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
-
-# Fix permission
-chown -R $(id -u):$(id -g) storage bootstrap/cache
-chmod -R 775 storage bootstrap/cache
-
-chmod -R gu+w storage
-chmod -R guo+w storage
+php artisan view:cach
 php artisan cache:clear
 
-# Start PHP-FPM
-exec docker-php-entrypoint php-fpm
+echo "Starting supervisord..."
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

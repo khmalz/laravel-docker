@@ -1,29 +1,22 @@
-FROM php:8.4-fpm-alpine
+FROM dunglas/frankenphp:php8.4
 
-# Install dependencies termasuk build tools
-RUN apk update && apk add --no-cache \
+ENV SERVER_NAME="http://"
+
+# Install dependencies
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     git \
     curl \
-    libpng-dev \
-    libwebp-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    libxml2-dev \
     zip \
     unzip \
-    postgresql-dev \
     postgresql-client \
-    libzip-dev \
-    icu-dev \
-    shadow \
-    autoconf \
-    build-base
+    librabbitmq-dev \
+    libpq-dev \
+    supervisor
 
 # Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
-RUN docker-php-ext-install -j$(nproc) \
-    pdo \
+RUN install-php-extensions \
+	pdo \
     pdo_pgsql \
     pgsql \
     mbstring \
@@ -35,12 +28,16 @@ RUN docker-php-ext-install -j$(nproc) \
     zip \
     opcache
 
+RUN docker-php-ext-enable zip
+
 # Install Redis extension (dengan phpize)
 RUN pecl install -o -f redis \
     && docker-php-ext-enable redis
 
 # Hapus build dependencies untuk mengurangi ukuran image
-RUN apk del autoconf build-base
+RUN apt-get purge -y autoconf build-essential && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -48,22 +45,27 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Buat user dan group untuk Laravel
 ARG UID=1000
 ARG GID=1000
-RUN addgroup -g $GID laravel && \
-    adduser -u $UID -G laravel -s /bin/sh -D laravel && \
-    mkdir -p /var/www/storage/logs && \
-    chown -R laravel:laravel /var/www
+RUN groupadd -g ${GID} laravel && \
+    useradd -u ${UID} -g laravel -s /bin/bash -m laravel && \
+    mkdir -p /var/www/html/storage/logs && \
+    chown -R laravel:laravel /var/www/html && \
+    mkdir -p /data /config \
+    && chown -R laravel:laravel /data /config
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Copy entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/
+COPY docker/etc/supervisor.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy entrypoint script dan beri permission
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Fix permission issues
-RUN chown -R laravel:laravel /var/www
-
-# Switch to laravel user
+# Switch ke user laravel
 USER laravel
 
+# Expose port
+EXPOSE 80 443
+
+# Start entrypoint
 ENTRYPOINT ["entrypoint.sh"]
