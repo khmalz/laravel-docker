@@ -47,9 +47,10 @@ jobs:
           start_time=$(date +%s)
           timeout=600
           while true; do
-            if docker compose logs php 2>&1 | grep -q "Server running"; then
-              echo "✅ Laravel Octane with FrankenPHP is up!"
-              break
+            if docker compose logs php 2>&1 | grep -q "INFO  Server running" && \
+              docker compose logs php 2>&1 | grep -q "Local: http://0.0.0.0:80"; then
+                echo "✅ Laravel Octane with FrankenPHP is up!"
+                break
             fi
 
             current_time=$(date +%s)
