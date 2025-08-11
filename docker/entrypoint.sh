@@ -5,13 +5,13 @@ set -e
 cd /var/www/html
 
 # Fix permission
-sudo chown -R $(id -u):$(id -g) storage bootstrap/cache
-sudo chmod -R 775 storage bootstrap/cache
-sudo chown -R laravel:laravel /var/www/html
-sudo chmod -R 775 storage bootstrap/cache public
+chown -R $(id -u):$(id -g) storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+chown -R laravel:laravel /var/www/html
+chmod -R 775 storage bootstrap/cache public
 
-sudo chmod -R gu+w storage
-sudo chmod -R guo+w storage
+chmod -R gu+w storage
+chmod -R guo+w storage
 
 # Copy .env if it doesn't exist
 if [ -f "/var/www/html/.env.docker" ]; then
