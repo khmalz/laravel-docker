@@ -4,6 +4,15 @@ set -e
 
 cd /var/www/html
 
+# Fix permission
+sudo chown -R $(id -u):$(id -g) storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+sudo chown -R laravel:laravel /var/www/html
+sudo chmod -R 775 storage bootstrap/cache public
+
+sudo chmod -R gu+w storage
+sudo chmod -R guo+w storage
+
 # Copy .env if it doesn't exist
 if [ -f "/var/www/html/.env.docker" ]; then
   echo "Using .env.docker"
@@ -23,15 +32,6 @@ composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader
-
-# Fix permission
-chown -R $(id -u):$(id -g) storage bootstrap/cache
-chmod -R 775 storage bootstrap/cache
-chown -R laravel:laravel /var/www/html
-chmod -R 775 storage bootstrap/cache public
-
-chmod -R gu+w storage
-chmod -R guo+w storage
 
 # Generate APP_KEY if not set
 if ! grep -q "^APP_KEY=" .env || [ -z "$(grep '^APP_KEY=' .env | cut -d '=' -f2)" ]; then
