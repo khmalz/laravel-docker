@@ -46,7 +46,7 @@ jobs:
       - name: Wait for Laravel setup completion
         run: |
           start_time=$(date +%s)
-          timeout=600
+          timeout=300
           while true; do
             current_time=$(date +%s)
             elapsed=$((current_time - start_time))
@@ -55,11 +55,6 @@ jobs:
               echo "❌ Timeout waiting for Laravel Octane / FrankenPHP"
               docker compose logs php
               exit 1
-            fi
-
-            if curl -s http://localhost:8000/up >/dev/null 2>&1; then
-              echo "✅ Laravel Octane with FrankenPHP is up and healthy!"
-              break
             fi
 
             echo "🔍 Latest PHP logs:"
