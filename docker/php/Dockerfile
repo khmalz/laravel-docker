@@ -64,7 +64,7 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Switch ke user laravel
-USER laravel
+# USER laravel
 
 # Expose port
 EXPOSE 80 443
