@@ -48,11 +48,6 @@ jobs:
           start_time=$(date +%s)
           timeout=300
           while true; do
-            # if docker compose logs php | tail -n 10 | grep -q "Press Ctrl+C to stop the server"; then
-            #   echo "✅ Server is ready and responding!"
-            #   break
-            # fi
-            
             current_time=$(date +%s)
             elapsed=$((current_time - start_time))
 
@@ -67,7 +62,10 @@ jobs:
             echo "🔍 Latest PHP logs:"
             docker compose logs php | tail -n 20
 
-            sleep 5
+            if docker compose logs php | tail -n 10 | grep -q "Press Ctrl+C to stop the server"; then
+              echo "✅ Server is ready and responding!"
+              break
+            fi
           done
 
       # - name: Run tests
