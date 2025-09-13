@@ -48,7 +48,7 @@ jobs:
           start_time=$(date +%s)
           timeout=300
           while true; do
-            if curl -s -f http://localhost:8000 > /dev/null 2>&1; then
+            docker compose logs php | tail -n 10 | grep -q "Server running"; then
               echo "✅ Server is ready and responding!"
               break
             fi
