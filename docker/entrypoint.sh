@@ -43,7 +43,7 @@ echo "Menunggu PostgreSQL..."
 while ! pg_isready -h postgres -p 5432 -q; do
   sleep 1
 done
-echo "PostgreSQL siap!"
+echo "PostgreSQL siap dijalankan!"
 
 # Migration dan seeding
 php artisan migrate:fresh --force
