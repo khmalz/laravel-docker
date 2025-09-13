@@ -4,7 +4,8 @@ services:
             context: ./
             dockerfile: docker/php/Dockerfile
         volumes:
-            - ./:/var/www/html
+            - .:/var/www/html
+            - ./vendor:/var/www/html/vendor
         ports:
             - "8000:80"
         environment:

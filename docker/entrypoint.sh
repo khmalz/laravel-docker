@@ -17,6 +17,12 @@ fi
 # Git safe directory
 git config --global --add safe.directory /var/www/html
 
+# if vendor folder doesn't exist
+if [ ! -d "vendor" ]; then
+  echo "📦 Running composer install (vendor missing)..."
+  composer install --no-interaction --prefer-dist --optimize-autoloader
+fi
+
 # Generate APP_KEY if not set
 if ! grep -q "^APP_KEY=" .env || [ -z "$(grep '^APP_KEY=' .env | cut -d '=' -f2)" ]; then
   php artisan key:generate

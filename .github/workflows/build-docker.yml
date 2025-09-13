@@ -46,7 +46,7 @@ jobs:
       - name: Wait for Laravel setup completion
         run: |
           start_time=$(date +%s)
-          timeout=200
+          timeout=300
           while true; do
             current_time=$(date +%s)
             elapsed=$((current_time - start_time))
