@@ -57,10 +57,9 @@ jobs:
               exit 1
             fi
 
-            if docker compose logs php 2>&1 | grep -q "INFO  Server running" && \
-              docker compose logs php 2>&1 | grep -q "Local: http://0.0.0.0:80"; then
-                echo "✅ Laravel Octane with FrankenPHP is up yeah!"
-                break
+            if curl -s http://localhost:8000/up >/dev/null 2>&1; then
+              echo "✅ Laravel Octane with FrankenPHP is up and healthy!"
+              break
             fi
 
             echo "🔍 Latest PHP logs:"
