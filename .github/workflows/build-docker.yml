@@ -76,3 +76,7 @@ jobs:
       - name: Stop containers
         if: always()
         run: docker compose down
+
+      - name: Remove Docker volumes
+        run: |
+          docker volume prune -f
