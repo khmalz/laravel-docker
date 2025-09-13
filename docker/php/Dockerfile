@@ -12,11 +12,12 @@ RUN apt-get update \
     postgresql-client \
     librabbitmq-dev \
     libpq-dev \
-    supervisor
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN install-php-extensions \
-	pdo \
+    pdo \
     pdo_pgsql \
     pgsql \
     mbstring \
@@ -28,21 +29,14 @@ RUN install-php-extensions \
     zip \
     opcache
 
-RUN docker-php-ext-enable zip
-
-# Install Redis extension (dengan phpize)
+# Install Redis extension
 RUN pecl install -o -f redis \
     && docker-php-ext-enable redis
-
-# Delete build dependencies to reduce image size
-RUN apt-get purge -y autoconf build-essential && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create user and group laravel
+# Create user laravel
 ARG UID=1000
 ARG GID=1000
 RUN groupadd -g ${GID} laravel && \
@@ -52,26 +46,30 @@ RUN groupadd -g ${GID} laravel && \
     mkdir -p /data /config && \
     chown -R laravel:laravel /data /config
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Set permissions
-RUN mkdir -p public \
-    && chown -R laravel:laravel public \
-    && chmod -R 775 public \
-    && mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
-    && chown -R laravel:laravel storage bootstrap/cache public
+# Copy project files
+COPY . .
 
-RUN chown -R laravel:laravel /var/www/html/public \
-    && chown -R laravel:laravel /var/www/html/storage \
-    && chown -R laravel:laravel /var/www/html/bootstrap/cache
+# Install PHP dependencies (di build stage, bukan runtime)
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader
 
+# Set permission
+RUN mkdir -p public storage bootstrap/cache \
+    && chown -R laravel:laravel /var/www/html \
+    && chmod -R 775 storage bootstrap/cache public
+
+# Copy supervisor config
 COPY docker/etc/supervisor.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy entrypoint script dan beri permission
+# Copy entrypoint
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-    
+
 # Switch ke user laravel
 USER laravel
 
