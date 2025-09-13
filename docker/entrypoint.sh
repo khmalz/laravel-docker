@@ -3,6 +3,10 @@
 set -e
 cd /var/www/html
 
+# Set permissions
+sudo chown -R laravel:laravel /var/www/html
+sudo chmod -R 775 storage bootstrap/cache public
+
 # Copy .env if it doesn't exist
 if [ -f "/var/www/html/.env.docker" ]; then
   echo "Using .env.docker"
@@ -17,10 +21,10 @@ fi
 # Git safe directory
 git config --global --add safe.directory /var/www/html
 
-# if vendor folder doesn't exist
+# Install dependencies if vendor doesn't exist
 if [ ! -d "vendor" ]; then
   echo "📦 Running composer install (vendor missing)..."
-  composer install --no-interaction --prefer-dist --optimize-autoloader
+  composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
 fi
 
 # Generate APP_KEY if not set

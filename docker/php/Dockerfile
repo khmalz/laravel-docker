@@ -51,13 +51,6 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Install PHP dependencies (di build stage, bukan runtime)
-RUN composer install \
-    --no-dev \
-    --no-interaction \
-    --prefer-dist \
-    --optimize-autoloader
-
 # Set permission
 RUN mkdir -p public storage bootstrap/cache \
     && chown -R laravel:laravel /var/www/html \
