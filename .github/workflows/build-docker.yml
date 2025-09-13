@@ -39,7 +39,8 @@ jobs:
 
       - name: Build and start containers
         run: |
-          docker compose up -d --build
+          docker compose build --no-cache
+          docker compose up -d
           docker compose ps
 
       - name: Wait for Laravel setup completion
